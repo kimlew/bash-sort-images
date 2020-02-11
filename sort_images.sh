@@ -1,11 +1,13 @@
 #! /usr/bin/env bash
 
 #----------------------------------------------------------------------
-# NAME: sort_in_year_month_subdirs.sh
+# NAME: sort_images.sh
 #
-# BRIEF: Command-line Bash script that creates year & month subdirectories 
-# based on photo-taken date & places in corresponding subdirectory.
-# Note: Script processes only a single directory & only on .jpg files. 
+# BRIEF: Command-line Bash script with prompts to help organize photo files.
+# - creates & sorts `.jpg` files into year & month subdirectories
+# - also creates day subdirectories, if answer at prompt is `Y` for Yes
+# - sorts by photo-taken date or if missing, modified date - since creation date 
+# is sometimes assigned file download date, which is incorrect.
 #
 # AUTHOR: Kim Lew
 #----------------------------------------------------------------------
