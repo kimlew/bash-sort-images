@@ -13,18 +13,18 @@
 #----------------------------------------------------------------------
 
 if [ $# -eq 0 ]; then
-  echo "Type the absolute directory path that needs year & month sub-directories."
+  echo "Type the absolute directory path that needs year & month subdirectories."
   echo "Leave off trailing / at end of path: "
   read directory_path
-  echo "Do you also want a day sub-directory? (Y for Yes, N for No):"
+  echo "Do you also want a day subdirectory? (Y for Yes, N for No):"
   read day_subdir_also
 else
   if [ ! "$1" ]; then
     echo "Enter the directory path - as the 1st parameter."
-    echo "Enter Y for Yes or N for No - for day sub-directory as 2nd parameter."
+    echo "Enter Y for Yes or N for No - for day subdirectory as 2nd parameter."
     exit 1
   fi
- fi
+fi
 
 if [[ $# -eq 1 || $# -eq 2 ]]; then
   directory_path = '$1' 
@@ -119,20 +119,32 @@ while read a_file_name; do
   echo "Year is: " $year
   echo "Month is: " $month
 
-  if [[ "$day_subdir_also" == 'Y' || 'y' || 'Yes' || 'yes' ]]; then
-     day="${date_for_date_change:6:2}"
-     echo "Day is: " $day
-  fi
-  :'
   just_path=$(dirname "${a_file_name}")
-  path_with_subdir_year_month="${just_path}/${year}/${month}"
   echo "a_file_name:" "$a_file_name"
   echo "just_path:" "$just_path"
-  echo "path_with_subdir_year_month:" "$path_with_subdir_year_month"
-  echo
 
-  mkdir -p ${path_with_subdir_year_month}
-'
+  if [ "$day_subdir_also" ]; then
+    case $day_subdir_also in
+       [yY][eE][sS]|[yY])
+    day="${date_for_date_change:6:2}"
+    echo "Day is: " $day
+    path_with_subdir_year_month_day="${just_path}/${year}/${month}//${day}"
+    echo "path_with_subdir_year_month_day:" "$path_with_subdir_year_month_day"
+    mkdir -p ${path_with_subdir_year_month_day}
+    ;;
+       [nN][oO]|[nN])
+    echo "No"
+    ;;
+       *)
+    echo "Invalid input..."
+    exit 1
+    ;;
+    esac
+  else
+    path_with_subdir_year_month="${just_path}/${year}/${month}"
+    echo "path_with_subdir_year_month:" "$path_with_subdir_year_month"
+    mkdir -p ${path_with_subdir_year_month}
+  fi
 :'
   #----------------------------------------------------------------------
   # Move Files into Subdirectories 
