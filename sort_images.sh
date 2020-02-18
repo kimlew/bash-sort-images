@@ -47,12 +47,12 @@ echo "Sorting & filename changes in progress..."
 echo "..."
 
 # Loop that processes entire given directory.
+file_sort_counter=0
 find "$directory_path" -maxdepth 1 -type f -name '*.jpg' |
 while read a_file_name; do
   # Check if a_file_name has [EXIF:DateTimeOriginal] or  [DATE:modify] in
   # photo file's metadata. Most will have [EXIF:DateTimeOriginal], but iPhone 
   # screenshots do not, so use [DATE:modify] for those.
-  
   exif_date="$(identify -format '%[EXIF:DateTimeOriginal]' "$a_file_name")"
   echo "EXIF date is: "$exif_date
   if [ ! $exif_date ]; then
@@ -156,8 +156,8 @@ while read a_file_name; do
 
   mv "$a_file_name" "$new_dir_and_filename"
 '
+$file_sort_counter = $file_sort_counter + 1
 done
-echo
-echo "Done."
 
+echo "Done. Number of files sorted is: " $file_sort_counter
 exit 0
