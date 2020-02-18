@@ -16,15 +16,22 @@ if [ $# -eq 0 ]; then
   echo "Type the absolute directory path that needs year & month sub-directories."
   echo "Leave off trailing / at end of path: "
   read directory_path
+  echo "Do you also want a day sub-directory? (Y for Yes, N for No):"
+  read day_subdir_also
 else
   if [ ! "$1" ]; then
-    echo "Enter the directory path as the 1st parameter." 
+    echo "Enter the directory path - as the 1st parameter."
+    echo "Enter Y for Yes or N for No - for day sub-directory as 2nd parameter."
     exit 1
   fi
  fi
 
-if [ ! -d "$directory_path" ] 
-then
+if [[ $# -eq 1 || $# -eq 2 ]]; then
+  directory_path = '$1' 
+  day_subdir_also = '$2'
+fi
+
+if [ ! -d "$directory_path" ]; then
     echo "This directory does NOT exist." 
     exit 1
 fi
@@ -50,7 +57,7 @@ while read a_file_name; do
   echo "EXIF date is: "$exif_date
   if [ ! $exif_date ]; then
     modify_date="$(identify -format '%[DATE:modify]' "$a_file_name")"
-    echo "Modify date is: " $modify_date
+    echo "MODIFY date is: " $modify_date
   fi
   
   # Give error if NO [EXIF:DateTimeOriginal] or [DATE:Modify].
@@ -66,31 +73,33 @@ while read a_file_name; do
   # Filesystem/OS Date Change
   #----------------------------------------------------------------------
   if [ $exif_date ]; then
-    # Wanted Format: 2015-09-02_07-09_0060.jpg
-    # Given Format:  2018:04:03 21:31:41
     # Change filesystem date to EXIF photo-taken date, EXIF:DateTimeOriginal.
+    # Given Format:  2018:04:03 21:31:41
+    # Wanted Syntax: [[CC]YY]MMDDhhmm[.SS] Wanted Format: 2015-09-02_07-09_0060.jpg  
     # 1. Replace ALL occurrences of : 	With: nothing
     # 2. Replace 1st occurrence of space 	With: nothing
     # 3. Build string by deleting last 2 char at end. Then concat . & then concat 
     # last 2 char, e.g., abc12 -> abc + . + 12 => abc.12
     date_for_date_change="${exif_date//:/}"
     date_for_date_change="${date_for_date_change// /}"
+
     # Use format: ${parameter%word} for the portion with the string to keep.
     # % - means to delete only the following stated chars & keep the rest, i.e., 
     # %${date_for_date_change: -2} - which is the 12 part of abc12 & keep abc
+    
+    # Trim last 2 chars to remove SS in format: [[CC]YY]MMDDhhmm[.SS]
     date_for_date_change="${date_for_date_change%??}.${date_for_date_change: -2}"
     echo "Changed EXIF date: " $date_for_date_change
+ 
   else # if [ $modify_date ]; then
-    # Change filesystem date to modify_date, date:modify.
-    # Wanted Format: [[CC]YY]MMDDhhmm[.SS]
+    # Change filesystem date to modify_date, date:modify for date change.
     # Given Format:  2018-10-09T18:42:41+00:00
-    # 1. Trim last 6 chars.
+    # Wanted Syntax: [[CC]YY]MMDDhhmm[.SS] Wanted Format: 202002031806
+    # 1. Trim last 9 chars.
     # 2. Remove all -.
     # 3. Remove all T.
     # 4. Remove all :.
-
-  # Modify date for date change:  
-    date_for_date_change=${modify_date::-6}
+    date_for_date_change=${modify_date::-9}
     date_for_date_change="${date_for_date_change//-/}"
     date_for_date_change="${date_for_date_change//T/}"
     date_for_date_change="${date_for_date_change//:/}"
@@ -103,12 +112,18 @@ while read a_file_name; do
   #----------------------------------------------------------------------
   # /Users/kimlew/Sites/bash_projects/test_mkdir-p
   # ${string:position:length}
-  # 2015:09:02 07:09:03
-  year=${exif_date:0:4}
-  month=${exif_date:5:2}
-  echo $year
-  echo $month
+  # $date_for_date_change is: 202002031806
+  # short="${long:0:2}" ; echo "${short}"
+  year="${date_for_date_change:0:4}"
+  month="${date_for_date_change_date:5:2}"
+  echo "Year is: " $year
+  echo "Month is: " $month
 
+  if [[ "$day_subdir_also" == 'Y' || 'y' || 'Yes' || 'yes' ]]; then
+     day="${date_for_date_change:6:2}"
+     echo "Day is: " $day
+  fi
+  :'
   just_path=$(dirname "${a_file_name}")
   path_with_subdir_year_month="${just_path}/${year}/${month}"
   echo "a_file_name:" "$a_file_name"
@@ -117,7 +132,8 @@ while read a_file_name; do
   echo
 
   mkdir -p ${path_with_subdir_year_month}
-
+'
+:'
   #----------------------------------------------------------------------
   # Move Files into Subdirectories 
   #----------------------------------------------------------------------
@@ -127,6 +143,7 @@ while read a_file_name; do
   echo "new_dir_and_filename:" "$new_dir_and_filename"
 
   mv "$a_file_name" "$new_dir_and_filename"
+'
 done
 echo
 echo "Done."
