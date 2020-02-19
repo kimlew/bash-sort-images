@@ -50,18 +50,19 @@ echo "..."
 file_sort_counter=0
 find "$directory_path" -maxdepth 1 -type f -name '*.jpg' |
 while read a_file_name; do
-  # Check if a_file_name has [EXIF:DateTimeOriginal] or  [DATE:modify] in
+  # Check if a_file_name has [EXIF:DateTimeOriginal] or [DATE:modify] in
   # photo file's metadata. Most will have [EXIF:DateTimeOriginal], but iPhone 
   # screenshots do not, so use [DATE:modify] for those.
-  exif_date="$(identify -format '%[EXIF:DateTimeOriginal]' "$a_file_name")"
-  echo "EXIF date is: "$exif_date
-  if [ ! $exif_date ]; then
+  if [ "$exif_date" ]; then
+    exif_date="$(identify -format '%[EXIF:DateTimeOriginal]' "$a_file_name")"
+    echo "EXIF date is: "$exif_date
+  else 
     modify_date="$(identify -format '%[DATE:modify]' "$a_file_name")"
     echo "MODIFY date is: " $modify_date
   fi
   
   # Give error if NO [EXIF:DateTimeOriginal] or [DATE:Modify].
-  if [ ! $exif_date ] && [ ! $modify_date ]; then
+  if [ ! "$exif_date" ] && [ ! "$modify_date" ]; then
     echo "Error: The file, $a_file_name"
     echo "- is missing metadata for exif date or modify date - so skipping this file"
     echo "Continuing with next file ..."
@@ -72,7 +73,7 @@ while read a_file_name; do
   #----------------------------------------------------------------------
   # Filesystem/OS Date Change
   #----------------------------------------------------------------------
-  if [ $exif_date ]; then
+  if [ "$exif_date" ]; then
     # Change filesystem date to EXIF photo-taken date, EXIF:DateTimeOriginal.
     # Given Format:  2018:04:03 21:31:41
     # Wanted Syntax: [[CC]YY]MMDDhhmm[.SS] Wanted Format: 2015-09-02_07-09_0060.jpg  
@@ -80,6 +81,8 @@ while read a_file_name; do
     # 2. Replace 1st occurrence of space 	With: nothing
     # 3. Build string by deleting last 2 char at end. Then concat . & then concat 
     # last 2 char, e.g., abc12 -> abc + . + 12 => abc.12
+    
+    #date_for_date_change=${modify_date::-9}
     date_for_date_change="${exif_date//:/}"
     date_for_date_change="${date_for_date_change// /}"
 
@@ -88,7 +91,7 @@ while read a_file_name; do
     # %${date_for_date_change: -2} - which is the 12 part of abc12 & keep abc
     
     # Trim last 2 chars to remove SS in format: [[CC]YY]MMDDhhmm[.SS]
-    date_for_date_change="${date_for_date_change%??}.${date_for_date_change: -2}"
+    date_for_date_change="${date_for_date_change%??}.${date_for_date_change: -5}"
     echo "Changed EXIF date: " $date_for_date_change
  
   else # if [ $modify_date ]; then
@@ -103,7 +106,7 @@ while read a_file_name; do
     date_for_date_change="${date_for_date_change//-/}"
     date_for_date_change="${date_for_date_change//T/}"
     date_for_date_change="${date_for_date_change//:/}"
-    echo "Changed modify_date is: " $date_for_date_change
+    echo "Changed modify_date is: " $date_for_date_change # 201801092251
   fi
   touch -t "$date_for_date_change" "$a_file_name"
  
@@ -122,15 +125,21 @@ while read a_file_name; do
   just_path=$(dirname "${a_file_name}")
   echo "a_file_name:" "$a_file_name"
   echo "just_path:" "$just_path"
+ 
+  # For path to move files into subdirectories 
+  just_filename=$(basename "${a_file_name}")
+  echo "just_filename:" "$just_filename"
 
   if [ "$day_subdir_also" ]; then
     case $day_subdir_also in
        [yY][eE][sS]|[yY])
     day="${date_for_date_change:6:2}"
     echo "Day is: " $day
-    path_with_subdir_year_month_day="${just_path}/${year}/${month}//${day}"
+    
+    path_with_subdir_year_month_day="${just_path}/${year}/${month}/${day}"
     echo "path_with_subdir_year_month_day:" "$path_with_subdir_year_month_day"
     mkdir -p ${path_with_subdir_year_month_day}
+    new_dir_and_filename=$just_path/$year/$month/$day/$just_filename
     ;;
        [nN][oO]|[nN])
     echo "No"
@@ -144,19 +153,11 @@ while read a_file_name; do
     path_with_subdir_year_month="${just_path}/${year}/${month}"
     echo "path_with_subdir_year_month:" "$path_with_subdir_year_month"
     mkdir -p ${path_with_subdir_year_month}
+    new_dir_and_filename=$just_path/$year/$month/$just_filename
   fi
-:'
-  #----------------------------------------------------------------------
-  # Move Files into Subdirectories 
-  #----------------------------------------------------------------------
-  just_filename=$(basename "${new_file_name}")
-  new_dir_and_filename=$just_path/$year/$month/$just_filename
-  echo "just_filename:" "$just_filename"
   echo "new_dir_and_filename:" "$new_dir_and_filename"
-
   mv "$a_file_name" "$new_dir_and_filename"
-'
-$file_sort_counter = $file_sort_counter + 1
+  $file_sort_counter = $file_sort_counter + 1
 done
 
 echo "Done. Number of files sorted is: " $file_sort_counter
