@@ -48,27 +48,18 @@ echo "..."
 
 # Loop that processes entire given directory.
 file_sort_counter=0
+exif_date="$(identify -format '%[EXIF:DateTimeOriginal]' "$a_file_name")"
+modify_date="$(identify -format '%[DATE:modify]' "$a_file_name")"
+echo "EXIF date is: "$exif_date
+echo "MODIFY date is: " $modify_date
+
 find "$directory_path" -maxdepth 1 -type f -name '*.jpg' |
 while read a_file_name; do
-  # Check if a_file_name has [EXIF:DateTimeOriginal] or [DATE:modify] in
-  # photo file's metadata. Most will have [EXIF:DateTimeOriginal], but iPhone 
-  # screenshots do not, so use [DATE:modify] for those.
-    # Give error if NO [EXIF:DateTimeOriginal] or [DATE:Modify].
-  if [ ! "$exif_date" ] && [ ! "$modify_date" ]; then
-    echo "Error: The file, $a_file_name"
-    echo "- is missing metadata for exif date or modify date - so skipping this file"
-    echo "Continuing with next file ..."
-    echo
-    continue
-  fi
-  
-  if [ "$exif_date" ]; then
-    exif_date="$(identify -format '%[EXIF:DateTimeOriginal]' "$a_file_name")"
-    echo "EXIF date is: "$exif_date
-  else 
-    modify_date="$(identify -format '%[DATE:modify]' "$a_file_name")"
-    echo "MODIFY date is: " $modify_date
-  fi
+  # For each  a_file_name, check for [EXIF:DateTimeOriginal] in photo file's 
+  # metadata. If exists, use it. If not, use [DATE:modify]. If neither exists, 
+  # give error.
+  # Note: Most files have [EXIF:DateTimeOriginal], but iPhone screenshots do
+  # NOT, so use [DATE:modify] for those.
 
   #----------------------------------------------------------------------
   # Filesystem/OS Date Change
@@ -79,22 +70,21 @@ while read a_file_name; do
     # Wanted Syntax: [[CC]YY]MMDDhhmm[.SS] Wanted Format: 2015-09-02_07-09_0060.jpg  
     # 1. Replace ALL occurrences of : 	With: nothing
     # 2. Replace 1st occurrence of space 	With: nothing
-    # 3. Build string by deleting last 2 char at end. Then concat . & then concat 
-    # last 2 char, e.g., abc12 -> abc + . + 12 => abc.12
+    # 3. Build string by deleting last 2 char at end, concatting . & then  
+    # concatting those last 2 char, e.g., abc.12 = abc + . + 12
     
-    #date_for_date_change=${modify_date::-9}
     date_for_date_change="${exif_date//:/}"
     date_for_date_change="${date_for_date_change// /}"
 
     # Use format: ${parameter%word} for the portion with the string to keep.
-    # % - means to delete only the following stated chars & keep the rest, i.e., 
-    # %${date_for_date_change: -2} - which is the 12 part of abc12 & keep abc
+    # % - means to delete only the following stated chars & keep the rest, 
+    # i.e., %${date_for_date_change: -2} delete 12 part of abc12 & keep abc
     
-    # Trim last 2 chars to remove SS in format: [[CC]YY]MMDDhhmm[.SS]
-    date_for_date_change="${date_for_date_change%??}.${date_for_date_change: -5}"
+    # Trim last 2 chars to remove SS so in format: [[CC]YY]MMDDhhmm[.SS]
+    date_for_date_change="${date_for_date_change%??}.${date_for_date_change: -2}"
     echo "Changed EXIF date: " $date_for_date_change
  
-  else # if [ $modify_date ]; then
+  else if [ "$modify_date" ]; then
     # Change filesystem date to modify_date, date:modify for date change.
     # Given Format:  2018-10-09T18:42:41+00:00
     # Wanted Syntax: [[CC]YY]MMDDhhmm[.SS] Wanted Format: 202002031806
@@ -107,20 +97,24 @@ while read a_file_name; do
     date_for_date_change="${date_for_date_change//T/}"
     date_for_date_change="${date_for_date_change//:/}"
     echo "Changed modify_date is: " $date_for_date_change # 201801092251
+   
+  else
+    # Give error if NO [EXIF:DateTimeOriginal] or [DATE:Modify].
+    echo "Error: The file, $a_file_name"
+    echo "- is missing exif date or modify date metadata - so skipping this file"
+    echo "Continuing with next file ..."
   fi
   touch -t "$date_for_date_change" "$a_file_name"
  
   #----------------------------------------------------------------------
   # Make Subdirectories
   #----------------------------------------------------------------------
-  # /Users/kimlew/Sites/bash_projects/test_mkdir-p
-  # ${string:position:length}
   # $date_for_date_change is: 202002031806
-  # short="${long:0:2}" ; echo "${short}"
+  # ${string:position:length}
   year="${date_for_date_change:0:4}"
   month="${date_for_date_change_date:5:2}"
-  echo "Year is: " $year
-  echo "Month is: " $month
+  echo "Year is: " "$year"
+  echo "Month is: " "$month"
 
   just_path=$(dirname "${a_file_name}")
   echo "a_file_name:" "$a_file_name"
@@ -157,7 +151,7 @@ while read a_file_name; do
   fi
   echo "new_dir_and_filename:" "$new_dir_and_filename"
   mv "$a_file_name" "$new_dir_and_filename"
-  $file_sort_counter = $file_sort_counter + 1
+  $file_sort_counter = $((file_sort_counter+1))
 done
 
 echo "Done. Number of files sorted is: " $file_sort_counter
