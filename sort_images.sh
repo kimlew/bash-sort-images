@@ -53,21 +53,21 @@ while read a_file_name; do
   # Check if a_file_name has [EXIF:DateTimeOriginal] or [DATE:modify] in
   # photo file's metadata. Most will have [EXIF:DateTimeOriginal], but iPhone 
   # screenshots do not, so use [DATE:modify] for those.
-  if [ "$exif_date" ]; then
-    exif_date="$(identify -format '%[EXIF:DateTimeOriginal]' "$a_file_name")"
-    echo "EXIF date is: "$exif_date
-  else 
-    modify_date="$(identify -format '%[DATE:modify]' "$a_file_name")"
-    echo "MODIFY date is: " $modify_date
-  fi
-  
-  # Give error if NO [EXIF:DateTimeOriginal] or [DATE:Modify].
+    # Give error if NO [EXIF:DateTimeOriginal] or [DATE:Modify].
   if [ ! "$exif_date" ] && [ ! "$modify_date" ]; then
     echo "Error: The file, $a_file_name"
     echo "- is missing metadata for exif date or modify date - so skipping this file"
     echo "Continuing with next file ..."
     echo
     continue
+  fi
+  
+  if [ "$exif_date" ]; then
+    exif_date="$(identify -format '%[EXIF:DateTimeOriginal]' "$a_file_name")"
+    echo "EXIF date is: "$exif_date
+  else 
+    modify_date="$(identify -format '%[DATE:modify]' "$a_file_name")"
+    echo "MODIFY date is: " $modify_date
   fi
 
   #----------------------------------------------------------------------
