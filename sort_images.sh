@@ -47,19 +47,18 @@ echo "Sorting & filename changes in progress..."
 echo "..."
 
 file_sort_counter=0
-exif_date="$(identify -format '%[EXIF:DateTimeOriginal]' "$a_file_name")"
-modify_date="$(identify -format '%[DATE:modify]' "$a_file_name")"
-echo "EXIF date is: " "$exif_date"
-echo "MODIFY date is: " "$modify_date"
 
 # Loop that processes entire given directory.
-find "$directory_path" -maxdepth 1 -type f -name '*.jpg' |
 while read -r a_file_name; do
   # For each  a_file_name, check for [EXIF:DateTimeOriginal] in photo file's
   # metadata. If exists, use it. If not, use [DATE:modify]. If neither exists,
   # give error.
   # Note: Most files have [EXIF:DateTimeOriginal], but iPhone screenshots do
   # NOT, so use [DATE:modify] for those.
+  exif_date="$(identify -format '%[EXIF:DateTimeOriginal]' "$a_file_name")"
+  modify_date="$(identify -format '%[DATE:modify]' "$a_file_name")"
+  echo "EXIF date is: " "$exif_date"
+  echo "MODIFY date is: " "$modify_date"
 
   #----------------------------------------------------------------------
   # Change Filesystem/OS Date
@@ -116,7 +115,7 @@ while read -r a_file_name; do
   # $date_for_date_change is: 202002031806
   # ${string:position:length}
   year="${date_for_date_change:0:4}"
-  month="${date_for_date_change:5:2}"
+  month="${date_for_date_change:4:2}"
   echo "Year is: " "$year"
   echo "Month is: " "$month"
 
@@ -162,7 +161,8 @@ while read -r a_file_name; do
   mv "$a_file_name" "$new_dir_and_filename"
   file_sort_counter="$((file_sort_counter+1))"
   # count=`expr $count + 1`
-done
+done < <(find "$directory_path" -maxdepth 1 -type f -name '*.jpg') # process substitution
+# <( creates a temporary file/named pipes
 
 echo "Done. Number of files sorted is: " "$file_sort_counter"
 exit 0
