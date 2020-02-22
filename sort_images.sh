@@ -127,34 +127,32 @@ while read -r a_file_name; do
   just_filename=$(basename "${a_file_name}")
   echo "just_filename:" "$just_filename"
 
-  if [ "$day_subdir_also" ]; then
+  if [ "$day_subdir_also" ]; then # Check in case empty command line argument.
     case $day_subdir_also in
-       [yY][eE][sS]|[yY])
-    day="${date_for_date_change:7:2}"
+       [yY] | [yY][eE][sS])
+    day="${date_for_date_change:6:2}"
     echo "Day is: " "$day"
 
     path_with_subdir_year_month_day="${just_path}/${year}/${month}/${day}"
-    echo "path_with_subdir_year_month_day:" "$path_with_subdir_year_month_day"
+    echo "Path with year_month_day:" "$path_with_subdir_year_month_day"
     mkdir -p "${path_with_subdir_year_month_day}"
 
     new_dir_and_filename="${just_path}/${year}/${month}/${day}/${just_filename}"
     # new_dir_and_filename="$just_path/$year/$month/$day/$just_filename"
     ;;
-       [nN][oO]|[nN])
-    echo "No"
+       [nN] | [nN][oO]) # Just year & month subdirectories.
+    path_with_subdir_year_month="${just_path}/${year}/${month}"
+    echo "Path with year_month:" "$path_with_subdir_year_month"
+    mkdir -p "${path_with_subdir_year_month}"
+
+    new_dir_and_filename="${just_path}/${year}/${month}/${just_filename}"
+    # new_dir_and_filename="$just_path/$year/$month/$just_filename"
     ;;
        *)
     echo "Invalid input..."
     exit 1
     ;;
-    esac
-  else # Just year & month subdirectories.
-    path_with_subdir_year_month="${just_path}/${year}/${month}"
-    echo "path_with_subdir_year_month:" "$path_with_subdir_year_month"
-    mkdir -p "${path_with_subdir_year_month}"
-
-    new_dir_and_filename="${just_path}/${year}/${month}/${just_filename}"
-    # new_dir_and_filename="$just_path/$year/$month/$just_filename"
+    esac 
   fi
 
   echo "new_dir_and_filename:" "$new_dir_and_filename"
