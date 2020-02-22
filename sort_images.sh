@@ -16,12 +16,12 @@ if [ $# -eq 0 ]; then
   echo "Type the absolute directory path that needs year & month subdirectories."
   echo "Leave off trailing / at end of path: "
   read -r directory_path
-  echo "Do you also want a day subdirectory? (Y for Yes, N for No):"
+  echo "Do you also want a Day subdirectory? (Y for Yes, N for No):"
   read -r day_subdir_also
 else
   if [ ! "$1" ]; then
     echo "Enter the directory path - as the 1st parameter."
-    echo "Enter Y for Yes or N for No - for day subdirectory as 2nd parameter."
+    echo "Enter Y for Yes or N for No - for Day subdirectory as 2nd parameter."
     exit 1
   fi
 fi
@@ -55,8 +55,8 @@ while read -r a_file_name; do
   # give error.
   # Note: Most files have [EXIF:DateTimeOriginal], but iPhone screenshots do
   # NOT, so use [DATE:modify] for those.
-  exif_date="$(identify -format '%[EXIF:DateTimeOriginal]' "$a_file_name")"
-  modify_date="$(identify -format '%[DATE:modify]' "$a_file_name")"
+  exif_date="$(identify -format '%[EXIF:DateTimeOriginal]' "$a_file_name" 2> /dev/null)" 
+  modify_date="$(identify -format '%[DATE:modify]' "$a_file_name" 2> /dev/null)"
   echo "EXIF date is: " "$exif_date"
   echo "MODIFY date is: " "$modify_date"
 
@@ -84,11 +84,6 @@ while read -r a_file_name; do
 
     date_for_date_change="${exif_date//:/}"
     date_for_date_change="${date_for_date_change// /}"
-
-    # Use format: ${parameter%word} for the portion with the string to keep.
-    # % - means to delete only the following stated chars & keep the rest,
-    # i.e., %${date_for_date_change: -2} delete 12 part of abc12 & keep abc
-
     # Trim last 2 chars to remove SS so in format: [[CC]YY]MMDDhhmm[.SS]
     date_for_date_change="${date_for_date_change%??}.${date_for_date_change: -2}"
     echo "Changed EXIF date: " "$date_for_date_change"
@@ -138,7 +133,6 @@ while read -r a_file_name; do
     mkdir -p "${path_with_subdir_year_month_day}"
 
     new_dir_and_filename="${just_path}/${year}/${month}/${day}/${just_filename}"
-    # new_dir_and_filename="$just_path/$year/$month/$day/$just_filename"
     ;;
        [nN] | [nN][oO]) # Just year & month subdirectories.
     path_with_subdir_year_month="${just_path}/${year}/${month}"
@@ -146,7 +140,6 @@ while read -r a_file_name; do
     mkdir -p "${path_with_subdir_year_month}"
 
     new_dir_and_filename="${just_path}/${year}/${month}/${just_filename}"
-    # new_dir_and_filename="$just_path/$year/$month/$just_filename"
     ;;
        *)
     echo "Invalid input..."
@@ -158,9 +151,7 @@ while read -r a_file_name; do
   echo "new_dir_and_filename:" "$new_dir_and_filename"
   mv "$a_file_name" "$new_dir_and_filename"
   file_sort_counter="$((file_sort_counter+1))"
-  # count=`expr $count + 1`
 done < <(find "$directory_path" -maxdepth 1 -type f -name '*.jpg') # process substitution
-# <( creates a temporary file/named pipes
 
 echo "Done. Number of files sorted is: " "$file_sort_counter"
 exit 0
