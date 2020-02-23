@@ -73,6 +73,7 @@ while read -r a_file_name; do
   # give error.
   # Note: Most files have [EXIF:DateTimeOriginal], but iPhone screenshots do
   # NOT, so use [DATE:modify] for those.
+  echo "Looking at file:" "${a_file_name}"
   exif_date="$(identify -format '%[EXIF:DateTimeOriginal]' "$a_file_name" 2> /dev/null)" 
   modify_date="$(identify -format '%[DATE:modify]' "$a_file_name" 2> /dev/null)"
   echo "EXIF date is: " "$exif_date"
