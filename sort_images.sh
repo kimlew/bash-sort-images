@@ -28,7 +28,24 @@ fi
 
 if [[ $# -eq 1 || $# -eq 2 ]]; then
   directory_path="$1"
-  day_subdir_also="$2"
+  safe_day_subdir_also='n'
+
+  if [ $# -eq 2 ]; then
+    day_subdir_also="$2"
+
+    case $day_subdir_also in
+      [yY] | [yY][eE][sS]) # To create year-month-day subdirectories.
+        safe_day_subdir_also='y'
+    ;;
+      [nN] | [nN][oO] | '') # To create ONLY year-month subdirectories.
+        safe_day_subdir_also='n'
+    ;;
+       *)
+    echo "Invalid input. Enter Y or N." "There is a problem with the 2nd parameter given or the answer to 2nd prompt."
+    exit 1
+    ;;
+    esac
+  fi
 fi
 
 if [ ! -d "$directory_path" ]; then
@@ -43,6 +60,7 @@ if ! magick identify --version > /dev/null; then
   echo "Then re-run this script."
   exit 1
 fi
+
 echo "Sorting & filename changes in progress..."
 echo "..."
 
@@ -72,7 +90,7 @@ while read -r a_file_name; do
     echo "Error: The file, $a_file_name"
     echo "- is missing exif date or modify date metadata - so skipping this file"
     echo "Continuing with next file ..."
-
+    
   elif [ "$exif_date" ]; then
     # Change filesystem date to EXIF photo-taken date, EXIF:DateTimeOriginal.
     # Given Format:  2018:04:03 21:31:41
@@ -122,9 +140,7 @@ while read -r a_file_name; do
   just_filename=$(basename "${a_file_name}")
   echo "just_filename:" "$just_filename"
 
-  if [ "$day_subdir_also" ]; then # Check in case empty command line argument.
-    case $day_subdir_also in
-       [yY] | [yY][eE][sS])
+  if [ "$safe_day_subdir_also" == 'y' ]; then # Make year-month-day subdirectories.
     day="${date_for_date_change:6:2}"
     echo "Day is: " "$day"
 
@@ -133,19 +149,13 @@ while read -r a_file_name; do
     mkdir -p "${path_with_subdir_year_month_day}"
 
     new_dir_and_filename="${just_path}/${year}/${month}/${day}/${just_filename}"
-    ;;
-       [nN] | [nN][oO]) # Just year & month subdirectories.
+    
+  else # [ "$safe_day_subdir_also" == 'n' ]; then # Make year-month subdirectories.
     path_with_subdir_year_month="${just_path}/${year}/${month}"
     echo "Path with year_month:" "$path_with_subdir_year_month"
     mkdir -p "${path_with_subdir_year_month}"
 
     new_dir_and_filename="${just_path}/${year}/${month}/${just_filename}"
-    ;;
-       *)
-    echo "Invalid input..."
-    exit 1
-    ;;
-    esac 
   fi
 
   echo "new_dir_and_filename:" "$new_dir_and_filename"
@@ -154,4 +164,9 @@ while read -r a_file_name; do
 done < <(find "$directory_path" -maxdepth 1 -type f -name '*.jpg') # process substitution
 
 echo "Done. Number of files sorted is: " "$file_sort_counter"
+
+if [ "$file_sort_counter" -eq 0 ]; then
+  echo "There are no image files at the top-level of the path you gave."
+fi
+
 exit 0
