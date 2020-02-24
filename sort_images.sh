@@ -91,7 +91,7 @@ while read -r a_file_name; do
     echo "Error: The file, $a_file_name"
     echo "- is missing exif date or modify date metadata - so skipping this file"
     echo "Continuing with next file ..."
-    
+    continue # To stop with current iteration & move on to next item.
   elif [ "$exif_date" ]; then
     # Change filesystem date to EXIF photo-taken date, EXIF:DateTimeOriginal.
     # Given Format:  2018:04:03 21:31:41
