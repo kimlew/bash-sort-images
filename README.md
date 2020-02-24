@@ -7,9 +7,11 @@
 
 Name: `sort_images.sh`
 
-Takes in 2 arguments at command line, e.g.,
-
+Gives user prompts, e.g.,
 - directory path: `/Users/kimlew/Sites/bash_projects/bash-sort-images`
-- whether you want day subdirectory also: `Y`
+- whether you want day subdirectory also: `y`
+
+Or lets user enter 2 command-line arguments, e.g.,
+'./sort_images.sh /Users/kimlew/Sites/bash_projects/bash-sort-images Y`
 
 **Note**: If ANY command-line arguments have spaces, you MUST put in single-quotes!
