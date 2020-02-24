@@ -13,7 +13,7 @@
 #----------------------------------------------------------------------
 
 if [ $# -eq 0 ]; then
-  echo "Type the absolute directory path that needs year & month subdirectories."
+  echo "Type the directory path that needs year & month subdirectories."
   echo "Leave off trailing / at end of path: "
   read -r directory_path
   echo "Do you also want a Day subdirectory? (Y for Yes, N for No):"
@@ -167,7 +167,7 @@ done < <(find "$directory_path" -maxdepth 1 -type f -name '*.jpg') # process sub
 echo "Done. Number of files sorted is: " "$file_sort_counter"
 
 if [ "$file_sort_counter" -eq 0 ]; then
-  echo "There are no image files at the top-level of the path you gave."
+  echo "There are no image files at the top-level of the path you typed."
 fi
 
 exit 0
