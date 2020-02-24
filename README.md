@@ -13,6 +13,6 @@ Gives user prompts, e.g.,
 
 Or lets user enter 2 command-line arguments, e.g.,
 
-`./sort_images.sh /Users/kimlew/Sites/bash_projects/bash-sort-images Y`
+`./sort_images.sh '/Users/kimlew/Sites/bash_projects/bash-sort-images' 'Y'`
 
 **Note**: If ANY command-line arguments have spaces, you MUST put in single-quotes!
