@@ -63,7 +63,6 @@ if ! magick identify --version > /dev/null; then
 fi
 
 echo "Sorting & filename changes in progress..."
-echo "..."
 
 file_sort_counter=0
 
@@ -106,8 +105,6 @@ while read -r a_file_name; do
     date_for_date_change="${date_for_date_change// /}"
     # Trim last 2 chars to remove SS so in format: [[CC]YY]MMDDhhmm[.SS]
     date_for_date_change="${date_for_date_change%??}.${date_for_date_change: -2}"
-    echo "Changed EXIF date: " "${date_for_date_change}"
-
   else # if [ "${modify_date}" ]; then
     # Change filesystem date to modify_date, date:modify for date change.
     # Given Format:  2018-10-09T18:42:41+00:00
@@ -120,7 +117,6 @@ while read -r a_file_name; do
     date_for_date_change="${date_for_date_change//-/}"
     date_for_date_change="${date_for_date_change//T/}"
     date_for_date_change="${date_for_date_change//:/}"
-    echo "Changed modify_date is: " "${date_for_date_change}" # 201801092251
   fi
   touch -t "${date_for_date_change}" "${a_file_name}"
 
@@ -131,36 +127,21 @@ while read -r a_file_name; do
   # ${string:position:length}
   year="${date_for_date_change:0:4}"
   month="${date_for_date_change:4:2}"
-  echo "Year is: " "${year}"
-  echo "Month is: " "${month}"
-
+  
   just_path=$(dirname "${a_file_name}")
-  echo "a_file_name:" "${a_file_name}"
-  echo "just_path:" "${just_path}"
-
-  # For path to move files into subdirectories
-  just_filename=$(basename "${a_file_name}")
-  echo "just_filename:" "${just_filename}"
+  just_filename=$(basename "${a_file_name}") # For path to move files into subdirectories
 
   if [ "${safe_day_subdir_also}" == 'y' ]; then # Make year-month-day subdirectories.
     day="${date_for_date_change:6:2}"
-    echo "Day is: " "${day}"
-
     path_with_subdir_year_month_day="${just_path}/${year}/${month}/${day}"
-    echo "Path with year_month_day:" "${path_with_subdir_year_month_day}"
     mkdir -p "${path_with_subdir_year_month_day}"
-
     new_dir_and_filename="${just_path}/${year}/${month}/${day}/${just_filename}"
-    
   else # [ "${safe_day_subdir_also}" == 'n' ]; then # Make year-month subdirectories.
     path_with_subdir_year_month="${just_path}/${year}/${month}"
-    echo "Path with year_month:" "${path_with_subdir_year_month}"
     mkdir -p "${path_with_subdir_year_month}"
-
     new_dir_and_filename="${just_path}/${year}/${month}/${just_filename}"
   fi
 
-  echo "new_dir_and_filename:" "${new_dir_and_filename}"
   mv "${a_file_name}" "${new_dir_and_filename}"
   file_sort_counter="$((file_sort_counter+1))"
 done < <(find "${directory_path}" -maxdepth 1 -type f -name '*.jpg' -o -name '*.JPG' \
