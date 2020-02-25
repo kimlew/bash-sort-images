@@ -13,7 +13,7 @@
 #----------------------------------------------------------------------
 
 if [ $# -eq 0 ]; then
-  echo "Type the directory path that needs year & month subdirectories."
+  echo "Type the directory path that needs Year & Month subdirectories."
   echo "Leave off trailing / at end of path: "
   read -r directory_path
   echo "Do you also want a Day subdirectory? (Y for Yes, N for No):"
@@ -41,7 +41,8 @@ if [[ $# -eq 1 || $# -eq 2 ]]; then
         safe_day_subdir_also='n'
     ;;
        *)
-    echo "Invalid input. Enter Y or N. There is a problem with the 2nd parameter given or the answer to 2nd prompt."
+    echo "Invalid input. Enter Y or N. There is a problem with the 2nd parameter \
+    given or the answer to the 2nd prompt."
     exit 1
     ;;
     esac
@@ -162,7 +163,7 @@ while read -r a_file_name; do
   echo "new_dir_and_filename:" "${new_dir_and_filename}"
   mv "${a_file_name}" "${new_dir_and_filename}"
   file_sort_counter="$((file_sort_counter+1))"
-done < <(find ${directory_path} -maxdepth 1 -type f -name '*.jpg' -o -name '*.JPG' \
+done < <(find "${directory_path}" -maxdepth 1 -type f -name '*.jpg' -o -name '*.JPG' \
     -o -name '*.gif' -o -name '*.GIF' -o -name '*.tif' -o -name '*.TIF')
    # Note: Redirects find back into while loop with process substitution so
    # ${file_sort_counter} is accessible vs. in a | subshell process.
