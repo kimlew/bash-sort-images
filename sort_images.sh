@@ -162,7 +162,10 @@ while read -r a_file_name; do
   echo "new_dir_and_filename:" "${new_dir_and_filename}"
   mv "${a_file_name}" "${new_dir_and_filename}"
   file_sort_counter="$((file_sort_counter+1))"
-done < <(find ${directory_path} -maxdepth 1 -type f -name '*.jpg') # process substitution
+done < <(find ${directory_path} -maxdepth 1 -type f -name '*.jpg' -o -name '*.JPG' \
+    -o -name '*.gif' -o -name '*.GIF' -o -name '*.tif' -o -name '*.TIF')
+   # Note: Redirects find back into while loop with process substitution so
+   # ${file_sort_counter} is accessible vs. in a | subshell process.
 
 echo "Done. Number of files sorted is: " "${file_sort_counter}"
 
