@@ -33,7 +33,7 @@ if [[ $# -eq 1 || $# -eq 2 ]]; then
   if [ $# -eq 2 ]; then
     day_subdir_also="$2"
 
-    case $day_subdir_also in
+    case "$day_subdir_also" in
       [yY] | [yY][eE][sS]) # To create year-month-day subdirectories.
         safe_day_subdir_also='y'
     ;;
@@ -41,14 +41,14 @@ if [[ $# -eq 1 || $# -eq 2 ]]; then
         safe_day_subdir_also='n'
     ;;
        *)
-    echo "Invalid input. Enter Y or N." "There is a problem with the 2nd parameter given or the answer to 2nd prompt."
+    echo "Invalid input. Enter Y or N. There is a problem with the 2nd parameter given or the answer to 2nd prompt."
     exit 1
     ;;
     esac
   fi
 fi
 
-if [ ! -d "$directory_path" ]; then
+if [ ! -d "${directory_path}" ]; then
     echo "This directory does NOT exist."
     exit 1
 fi
@@ -76,8 +76,8 @@ while read -r a_file_name; do
   echo "Looking at file:" "${a_file_name}"
   exif_date="$(identify -format '%[EXIF:DateTimeOriginal]' "$a_file_name" 2> /dev/null)" 
   modify_date="$(identify -format '%[DATE:modify]' "$a_file_name" 2> /dev/null)"
-  echo "EXIF date is: " "$exif_date"
-  echo "MODIFY date is: " "$modify_date"
+  echo "EXIF date is: " "${exif_date}"
+  echo "MODIFY date is: " "{$modify_date}"
 
   #----------------------------------------------------------------------
   # Change Filesystem/OS Date
@@ -86,13 +86,13 @@ while read -r a_file_name; do
   # is zero - so  under -z, a string containing only spaces is false - since it
   # has a non-zero length.
 
-  if [[ -z "$exif_date" ]] && [[ -z "$modify_date" ]]; then
+  if [[ -z "${exif_date}" ]] && [[ -z "${modify_date}" ]]; then
       # Give error if NO [EXIF:DateTimeOriginal] or [DATE:Modify].
-    echo "Error: The file, $a_file_name"
+    echo "Error: The file, " "${a_file_name}"
     echo "- is missing exif date or modify date metadata - so skipping this file"
     echo "Continuing with next file ..."
     continue # To stop with current iteration & move on to next item.
-  elif [ "$exif_date" ]; then
+  elif [ "${exif_date}" ]; then
     # Change filesystem date to EXIF photo-taken date, EXIF:DateTimeOriginal.
     # Given Format:  2018:04:03 21:31:41
     # Wanted Syntax: [[CC]YY]MMDDhhmm[.SS] Wanted Format: 2015-09-02_07-09_0060.jpg
@@ -105,9 +105,9 @@ while read -r a_file_name; do
     date_for_date_change="${date_for_date_change// /}"
     # Trim last 2 chars to remove SS so in format: [[CC]YY]MMDDhhmm[.SS]
     date_for_date_change="${date_for_date_change%??}.${date_for_date_change: -2}"
-    echo "Changed EXIF date: " "$date_for_date_change"
+    echo "Changed EXIF date: " "${date_for_date_change}"
 
-  else # if [ "$modify_date" ]; then
+  else # if [ "${modify_date}" ]; then
     # Change filesystem date to modify_date, date:modify for date change.
     # Given Format:  2018-10-09T18:42:41+00:00
     # Wanted Syntax: [[CC]YY]MMDDhhmm[.SS] Wanted Format: 202002031806
@@ -115,13 +115,13 @@ while read -r a_file_name; do
     # 2. Remove all -.
     # 3. Remove all T.
     # 4. Remove all :.
-    date_for_date_change=${modify_date::-9}
+    date_for_date_change="${modify_date::-9}"
     date_for_date_change="${date_for_date_change//-/}"
     date_for_date_change="${date_for_date_change//T/}"
     date_for_date_change="${date_for_date_change//:/}"
-    echo "Changed modify_date is: " "$date_for_date_change" # 201801092251
+    echo "Changed modify_date is: " "${date_for_date_change}" # 201801092251
   fi
-  touch -t "$date_for_date_change" "$a_file_name"
+  touch -t "${date_for_date_change}" "${a_file_name}"
 
   #----------------------------------------------------------------------
   # Make Subdirectories
@@ -130,43 +130,43 @@ while read -r a_file_name; do
   # ${string:position:length}
   year="${date_for_date_change:0:4}"
   month="${date_for_date_change:4:2}"
-  echo "Year is: " "$year"
-  echo "Month is: " "$month"
+  echo "Year is: " "${year}"
+  echo "Month is: " "${month}"
 
   just_path=$(dirname "${a_file_name}")
-  echo "a_file_name:" "$a_file_name"
-  echo "just_path:" "$just_path"
+  echo "a_file_name:" "${a_file_name}"
+  echo "just_path:" "${just_path}"
 
   # For path to move files into subdirectories
   just_filename=$(basename "${a_file_name}")
-  echo "just_filename:" "$just_filename"
+  echo "just_filename:" "${just_filename}"
 
-  if [ "$safe_day_subdir_also" == 'y' ]; then # Make year-month-day subdirectories.
+  if [ "${safe_day_subdir_also}" == 'y' ]; then # Make year-month-day subdirectories.
     day="${date_for_date_change:6:2}"
-    echo "Day is: " "$day"
+    echo "Day is: " "${day}"
 
     path_with_subdir_year_month_day="${just_path}/${year}/${month}/${day}"
-    echo "Path with year_month_day:" "$path_with_subdir_year_month_day"
+    echo "Path with year_month_day:" "${path_with_subdir_year_month_day}"
     mkdir -p "${path_with_subdir_year_month_day}"
 
     new_dir_and_filename="${just_path}/${year}/${month}/${day}/${just_filename}"
     
-  else # [ "$safe_day_subdir_also" == 'n' ]; then # Make year-month subdirectories.
+  else # [ "${safe_day_subdir_also}" == 'n' ]; then # Make year-month subdirectories.
     path_with_subdir_year_month="${just_path}/${year}/${month}"
-    echo "Path with year_month:" "$path_with_subdir_year_month"
+    echo "Path with year_month:" "${path_with_subdir_year_month}"
     mkdir -p "${path_with_subdir_year_month}"
 
     new_dir_and_filename="${just_path}/${year}/${month}/${just_filename}"
   fi
 
-  echo "new_dir_and_filename:" "$new_dir_and_filename"
-  mv "$a_file_name" "$new_dir_and_filename"
+  echo "new_dir_and_filename:" "${new_dir_and_filename}"
+  mv "${a_file_name}" "${new_dir_and_filename}"
   file_sort_counter="$((file_sort_counter+1))"
-done < <(find "$directory_path" -maxdepth 1 -type f -name '*.jpg') # process substitution
+done < <(find ${directory_path} -maxdepth 1 -type f -name '*.jpg') # process substitution
 
-echo "Done. Number of files sorted is: " "$file_sort_counter"
+echo "Done. Number of files sorted is: " "${file_sort_counter}"
 
-if [ "$file_sort_counter" -eq 0 ]; then
+if [ "${file_sort_counter}" -eq 0 ]; then
   echo "There are no image files at the top-level of the path you typed."
 fi
 
