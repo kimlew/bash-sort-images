@@ -4,7 +4,7 @@
 # NAME: sort_images.sh
 #
 # BRIEF: Command-line Bash script with prompts to help sort photo files.
-# - creates & sorts `.jpg` files into year & month subdirectories
+# - creates & sorts image files into year & month subdirectories
 # - also creates day subdirectories, if answer at prompt is `Y` for Yes
 # - sorts by photo-taken date or if missing, by modify date - since sometimes
 # creation date is assigned as file download date, which is incorrect.
