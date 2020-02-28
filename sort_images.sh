@@ -33,7 +33,7 @@ if [[ $# -eq 1 || $# -eq 2 ]]; then
   if [ $# -eq 2 ]; then
     day_subdir_also="$2"
 
-    case "$day_subdir_also" in
+    case "${day_subdir_also}" in
       [yY] | [yY][eE][sS]) # To create year-month-day subdirectories.
         safe_day_subdir_also='y'
     ;;
