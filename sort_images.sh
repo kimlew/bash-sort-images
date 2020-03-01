@@ -51,8 +51,6 @@ elif [ $# -gt 2 ]; then
   # Case of 3 or more parameters given.
   echo "Give 1 or 2 command-line arguments. Or give 0 arguments & get prompts."
   exit 1
-else # No command-line arguments given. Uses prompts & with checks.
-  continue
 fi
 
 if [ ! -d "${directory_path}" ]; then
